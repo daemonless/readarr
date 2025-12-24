@@ -1,0 +1,15 @@
+#!/bin/sh
+# Set up readarr user and config directory
+
+PUID=${PUID:-1000}
+PGID=${PGID:-1000}
+
+echo "[readarr] Setting up readarr user with PUID=$PUID PGID=$PGID"
+
+# Modify readarr user/group to match requested UID/GID
+pw groupmod readarr -g "$PGID" 2>/dev/null || true
+
+# Ensure config directory has correct ownership
+chown -R bsd:bsd /config
+
+echo "[readarr] Configuration complete"

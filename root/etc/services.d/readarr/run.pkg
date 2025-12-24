@@ -1,0 +1,16 @@
+#!/bin/execlineb -P
+# Readarr s6 service (pkg version)
+
+# Set up environment
+export XDG_CONFIG_HOME=/config
+export XDG_DATA_HOME=/config
+
+# .NET environment variables
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+
+# Signal readiness when the port is responsive
+s6-ready-when fetch -qo /dev/null http://localhost:8787/ping
+
+# Start Readarr
+# Package installs to /usr/local/share/readarr/bin/Readarr
+exec /usr/local/bin/s6-setuidgid bsd /usr/local/share/readarr/bin/Readarr -nobrowser -data=/config

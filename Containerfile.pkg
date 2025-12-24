@@ -1,0 +1,47 @@
+ARG BASE_VERSION=15
+FROM ghcr.io/daemonless/arr-base:${BASE_VERSION}
+
+ARG FREEBSD_ARCH=amd64
+LABEL org.opencontainers.image.title="readarr" \
+      org.opencontainers.image.description="Readarr book management on FreeBSD" \
+      org.opencontainers.image.source="https://github.com/daemonless/readarr" \
+      org.opencontainers.image.url="https://readarr.com/" \
+      org.opencontainers.image.documentation="https://wiki.servarr.com/readarr" \
+      org.opencontainers.image.licenses="GPL-3.0-only" \
+      org.opencontainers.image.vendor="daemonless" \
+      org.opencontainers.image.authors="daemonless" \
+      io.daemonless.port="8787" \
+      io.daemonless.arch="${FREEBSD_ARCH}" \
+      io.daemonless.volumes="/books,/downloads" \
+      org.freebsd.jail.allow.mlock="required"
+
+# Install Readarr from FreeBSD packages
+RUN pkg update && \
+    pkg install -y readarr && \
+    pkg clean -ay && \
+    rm -rf /var/cache/pkg/* /var/db/pkg/repos/*
+
+# Override package_info to show container update instructions
+RUN READARR_VERSION=$(pkg info readarr | sed -n 's/.*Version.*: *//p') && \
+    printf "UpdateMethod=docker\nBranch=master\nPackageVersion=%s\nPackageAuthor=[daemonless](https://github.com/daemonless/daemonless)\n" "$READARR_VERSION" > /usr/local/share/readarr/package_info && \
+    mkdir -p /app && echo "$READARR_VERSION" > /app/version
+
+# Create config directory
+RUN mkdir -p /config && \
+    chown -R bsd:bsd /config
+
+# Copy service definition
+COPY root/ /
+
+# Use pkg-specific run script
+COPY root/etc/services.d/readarr/run.pkg /etc/services.d/readarr/run
+
+# Make scripts executable
+RUN chmod +x /etc/services.d/readarr/run /etc/cont-init.d/* 2>/dev/null || true
+
+# Set up s6 service link
+RUN mkdir -p /run/s6/services/readarr && \
+    ln -sf /etc/services.d/readarr/run /run/s6/services/readarr/run
+
+EXPOSE 8787
+VOLUME /config

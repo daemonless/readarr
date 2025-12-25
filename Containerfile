@@ -3,7 +3,7 @@ FROM ghcr.io/daemonless/arr-base:${BASE_VERSION}
 
 ARG FREEBSD_ARCH=amd64
 ARG PACKAGES="readarr"
-LABEL org.opencontainers.image.title="readarr" \
+LABEL org.opencontainers.image.title="Readarr" \
     org.opencontainers.image.description="Readarr ebook management on FreeBSD" \
     org.opencontainers.image.source="https://github.com/daemonless/readarr" \
     org.opencontainers.image.url="https://readarr.com/" \
